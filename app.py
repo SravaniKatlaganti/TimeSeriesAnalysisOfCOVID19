@@ -1,6 +1,6 @@
 from datetime import datetime
 import numpy as np
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, responses
 import pandas as pd
 from starlette.responses import HTMLResponse
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -48,7 +48,9 @@ def take_inp():
 
 </html>
     '''
-
+@app.get("/image")
+def image():
+    return responses.FileResponse("img.png")
         
 data = pd.read_csv('us-counties-2020.csv')
 # tokenizer = Tokenizer(num_words=2000, split=' ')
