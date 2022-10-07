@@ -68,7 +68,7 @@ def my_pipeline(start_date,end_date):
 @app.post('/predict')
 def predict(fromDate:datetime,endDate:datetime = Form(...)):
     clean_fDate,clean_eDate = my_pipeline(fromDate,endDate) #clean, and preprocess the text through pipeline
-    loaded_model = tf.keras.models.load_model('sentiment.h5') #load the saved model 
+    #loaded_model = tf.keras.models.load_model('sentiment.h5') #load the saved model 
     predictions = loaded_model.predict(clean_fDate) #predict the text
     sentiment = int(np.argmax(predictions)) #calculate the index of max sentiment
     probability = max(predictions.tolist()[0]) #calulate the probability
