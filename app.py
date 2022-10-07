@@ -1,6 +1,6 @@
 from datetime import datetime
 import numpy as np
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, responses
 import pandas as pd
 from starlette.responses import HTMLResponse
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -48,7 +48,9 @@ def take_inp():
 
 </html>
     '''
-
+@app.get("/image")
+def image():
+    return responses.FileResponse("img.png")
         
 data = pd.read_csv('us-counties-2020.csv')
 # tokenizer = Tokenizer(num_words=2000, split=' ')
@@ -68,7 +70,7 @@ def my_pipeline(start_date,end_date):
 @app.post('/predict')
 def predict(fromDate:datetime,endDate:datetime = Form(...)):
     clean_fDate,clean_eDate = my_pipeline(fromDate,endDate) #clean, and preprocess the text through pipeline
-    loaded_model = tf.keras.models.load_model('sentiment.h5') #load the saved model 
+    #loaded_model = tf.keras.models.load_model('sentiment.h5') #load the saved model 
     predictions = loaded_model.predict(clean_fDate) #predict the text
     sentiment = int(np.argmax(predictions)) #calculate the index of max sentiment
     probability = max(predictions.tolist()[0]) #calulate the probability
