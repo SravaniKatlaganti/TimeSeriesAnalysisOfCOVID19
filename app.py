@@ -37,7 +37,7 @@ def take_inp():
             <input type="date" name="toDate">
             </br></br></br>
             <div style="padding-left: 50px;">
-                <button (click)="">Generate Forecast Data</button>
+                <input type="submit>Generate Forecast Data
             </div>
         </div>
         <div style="width:70%;float: left;">
@@ -70,21 +70,13 @@ def my_pipeline(start_date,end_date):
 @app.post('/predict')
 def predict(fromDate:datetime,endDate:datetime = Form(...)):
     clean_fDate,clean_eDate = my_pipeline(fromDate,endDate) #clean, and preprocess the text through pipeline
-    # loaded_model = tf.keras.models.load_model('sentiment.h5') #load the saved model 
-    # predictions = loaded_model.predict(clean_fDate) #predict the text
-    sentiment = 1
-    #int(np.argmax(predictions)) #calculate the index of max sentiment
-    # probability = max(predictions.tolist()[0]) #calulate the probability
-    if sentiment==0:
-         t_sentiment = 'negative' #set appropriate sentiment
-    elif sentiment==1:
-         t_sentiment = 'neutral'
-    elif sentiment==2:
-         t_sentiment='postive'
-    return { #return the dictionary for endpoint
-         "ACTUALL SENTENCE": clean_eDate,
-         "PREDICTED SENTIMENT": clean_fDate,
-         "Probability": 0.8
+    loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
+    predictions = loaded_model.predict(clean_fDate) #predict the text
+    probability = max(predictions.tolist()[0]) #calulate the probability
+    return { #return predicted covid cases
+         "PREDICTED Covid cases on ": clean_fDate,
+         "are": predictions,
+         "with probability": probability
     }
 
 @app.get('/')
