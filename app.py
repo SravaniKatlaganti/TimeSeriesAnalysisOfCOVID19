@@ -47,7 +47,7 @@ def take_inp():
     '''
 @app.get("/graph")
 def image():
-    return responses.FileResponse("img.png")
+    return responses.FileResponse("graph.jpg")
         
 data = pd.read_csv('us-counties-2020.csv')
 # tokenizer = Tokenizer(num_words=2000, split=' ')
@@ -78,4 +78,4 @@ def predict(fromDate:date,endDate:date = Form(...)):
 
 @app.get('/')
 def basic_view():
-    return {"WELCOME": "GO TO '/predict' for forescast page or '/graph' for visualizing actual and predicted values"}
+    return {"WELCOME": "GO TO '/predict' for forescast page or '/graph' for visualizing actual and predicted values graph"}
