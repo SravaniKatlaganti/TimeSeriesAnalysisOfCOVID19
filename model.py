@@ -367,6 +367,7 @@ ax.set_ylabel(ylabel='Cases', fontsize=14)
 
 ax.set_ylim(-2, 100)
 plt.show()
+plt.savefig('all_graph.png')
 
 # Plot test and predicted data set
 f, ax = plt.subplots(1)
@@ -380,6 +381,7 @@ ax.set_xlabel(xlabel='Date', fontsize=14)
 ax.set_ylabel(ylabel='Cases', fontsize=14)
 
 plt.show()
+plt.savefig('test_graph.png')
 
 """# LSTM"""
 
