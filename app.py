@@ -42,7 +42,7 @@ def take_inp():
         </div>
         <div style="width:70%;float: left;">
             <b>Graph</b>
-            <img src="all_graph.jpg" alt="alternatetext">
+            <img src="all_graph.png" alt="alternatetext">
         </div>
     </form>
 </body>
