@@ -37,7 +37,7 @@ def take_inp():
             <input type="date" name="toDate">
             </br></br></br>
             <div style="padding-left: 50px;">
-                <input type="submit/>Generate Forecast Data
+                <input type="submit">Generate Forecast Data
             </div>
         </div>
         <div style="width:70%;float: left;">
