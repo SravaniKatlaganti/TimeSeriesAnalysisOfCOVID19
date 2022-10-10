@@ -31,7 +31,7 @@ def take_inp():
             <b>Select Forecast period</b>
             </br></br>
             <label style="padding-right: 25px;">From Date: &nbsp;</label>
-            <input type="date" name="number">
+            <input type="number" name="count">
             </br></br>
             </br>
             <div style="padding-left: 50px;">
