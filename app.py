@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from xmlrpc.client import DateTime
 import numpy as np
 from fastapi import FastAPI, Form, responses
 import pandas as pd
@@ -33,11 +34,8 @@ def take_inp():
             <label style="padding-right: 25px;">From Date: &nbsp;</label>
             <input type="date" name="fromDate">
             </br></br>
-            <label style="padding-right: 50px;">To Date: </label>
-            <input type="date" name="toDate">
-            </br></br></br>
             <div style="padding-left: 50px;">
-                <input type="submit">
+                <input type="submit" value="Generate forecast">
             </div>
         </div>
     </form>
@@ -65,8 +63,8 @@ def my_pipeline(start_date,end_date):
     return startDate_new,endDate_new
 
 @app.post('/predict')
-def predict(fromDate:date,endDate:date = Form(...)):
-    clean_fDate,clean_eDate = my_pipeline(fromDate,endDate) #clean, and preprocess the text through pipeline
+def predict(date:DateTime):
+    clean_fDate,clean_eDate = my_pipeline(date) #clean, and preprocess the text through pipeline
     loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
     predictions = loaded_model.predict(clean_fDate) #predict the text
     probability = max(predictions.tolist()[0]) #calulate the probability
