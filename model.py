@@ -9,8 +9,6 @@ Original file is located at
 
 !pip3 install colorama
 
-"""# Data Visualization"""
-
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
@@ -18,7 +16,7 @@ import seaborn as sns # Visualization
 import matplotlib.pyplot as plt # Visualization
 from colorama import Fore
 
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error # accuarcy metrics
 import math
 
 import warnings # Supress warnings 
@@ -26,183 +24,74 @@ warnings.filterwarnings('ignore')
 
 np.random.seed(7)
 
+"""# Data Visualization"""
+
+# read data set
 df = pd.read_csv("https://raw.githubusercontent.com/Kande2011/TimeSeriesAnalysisOfCOVID19/data_preprocessing/DataSets/us-counties-2020.csv")
 df.head()
 
-# df=df1.append(df2)
-# df.head()
-
-# Remove not usefull columns
-df = df.drop(['geoid', 'county','cases_avg_per_100k','cases_avg_per_100k','deaths_avg_per_100k'], axis=1)
+# Remove unnecessary columns
+df = df.drop(['geoid','county','cases_avg_per_100k','cases_avg_per_100k','deaths_avg_per_100k'], axis=1)
 
 # Simplify column names
 df.columns = ['date',  'state', 'cases', 'cases_avg', 'deaths', 'deaths_avg']
-targets = ['cases_avg']
+# Specify target and feature columns
+targets = ['cases']
 features = [feature for feature in df.columns if feature not in targets]
 df.head()
 
+# Change date format to date timestamp
 from datetime import datetime, date 
-
 df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d')
 df.head().style.set_properties(subset=['date'], **{'background-color': 'dodgerblue'})
 
-# To compelte the data, as naive method, we will use ffill
+# plot feature and target columns for visualization
 f, ax = plt.subplots(nrows=5, ncols=1, figsize=(15, 25))
 
 for i, column in enumerate(df.drop('date', axis=1).columns):
-    sns.lineplot(x=df['date'], y=df[column].fillna(method='ffill'), ax=ax[i], color='dodgerblue')
+    sns.lineplot(x=df['date'], y=df[column], ax=ax[i], color='dodgerblue')
     ax[i].set_title('Feature: {}'.format(column), fontsize=14)
     ax[i].set_ylabel(ylabel=column, fontsize=14)
                       
     ax[i].set_xlim([date(2020, 1, 30), date(2020, 12, 30)])
 
-df = df.sort_values(by='date')
-
-# Check time intervals
-df['delta'] = df['date'] - df['date'].shift(1)
-
-df[['date', 'delta']].head()
-
-df['delta'].sum(), df['delta'].count()
-
 """# Date Preprocessing
 
-## Handle misssing data
+## Sorting and Equidistant Data
 """
 
+# Sort dataset by date column
+df = df.sort_values(by='date')
+# Check date column and time intervals 
+# Add time interval as 'delta column' for visualization
+df['delta'] = df['date'] - df['date'].shift(1)
+df[['date', 'delta']].head()
+
+# number of distict rows and total rows 
+df['delta'].sum(), df['delta'].count()
+
+"""## Handle misssing data"""
+
+# drop delta column
 df = df.drop('delta', axis=1)
+# Check for missing values
 df.isna().sum()
 
-f, ax = plt.subplots(nrows=2, ncols=1, figsize=(15, 15))
+"""no missing values, so no operations required
 
-old_deaths = df['deaths'].copy()
-df['deaths'] = df['deaths'].replace(0, np.nan)
+## Data Resampling
+"""
 
-sns.lineplot(x=df['date'], y=old_deaths, ax=ax[0], color='darkorange', label='original')
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(np.inf), ax=ax[0], color='dodgerblue', label='modified')
-ax[0].set_title('Feature: deaths', fontsize=14)
-ax[0].set_ylabel(ylabel='deaths', fontsize=14)
-ax[0].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
-
-old_cases = df['cases'].copy()
-df['cases'] = df['cases'].replace(0, np.nan)
-
-sns.lineplot(x=df['date'], y=old_cases, ax=ax[1], color='darkorange', label='original')
-sns.lineplot(x=df['date'], y=df['cases'].fillna(np.inf), ax=ax[1], color='dodgerblue', label='modified')
-ax[1].set_title('Feature: cases', fontsize=14)
-ax[1].set_ylabel(ylabel='cases', fontsize=14)
-ax[1].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
-
-f, ax = plt.subplots(nrows=1, ncols=1, figsize=(16,5))
-
-sns.heatmap(df.T.isna(), cmap='Blues')
-ax.set_title('Missing Values', fontsize=16)
-
-for tick in ax.yaxis.get_major_ticks():
-    tick.label.set_fontsize(14)
-plt.show()
-
-f, ax = plt.subplots(nrows=4, ncols=1, figsize=(15, 12))
-
-sns.lineplot(x=df['date'], y=df['cases'].fillna(0), ax=ax[0], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['cases'].fillna(np.inf), ax=ax[0], color='dodgerblue', label = 'original')
-ax[0].set_title('Fill NaN with 0', fontsize=14)
-ax[0].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-mean_cases = df['cases'].mean()
-sns.lineplot(x=df['date'], y=df['cases'].fillna(mean_cases), ax=ax[1], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['cases'].fillna(np.inf), ax=ax[1], color='dodgerblue', label = 'original')
-ax[1].set_title(f'Fill NaN with Mean Value ({mean_cases:.0f})', fontsize=14)
-ax[1].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-sns.lineplot(x=df['date'], y=df['cases'].ffill(), ax=ax[2], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['cases'].fillna(np.inf), ax=ax[2], color='dodgerblue', label = 'original')
-ax[2].set_title(f'FFill', fontsize=14)
-ax[2].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-sns.lineplot(x=df['date'], y=df['cases'].interpolate(), ax=ax[3], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['cases'].fillna(np.inf), ax=ax[3], color='dodgerblue', label = 'original')
-ax[3].set_title(f'Interpolate', fontsize=14)
-ax[3].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-for i in range(4):
-    ax[i].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
-    
-plt.tight_layout()
-plt.show()
-
-f, ax = plt.subplots(nrows=4, ncols=1, figsize=(15, 12))
-
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(0), ax=ax[0], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(np.inf), ax=ax[0], color='dodgerblue', label = 'original')
-ax[0].set_title('Fill NaN with 0', fontsize=14)
-ax[0].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-mean_deaths = df['deaths'].mean()
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(mean_deaths), ax=ax[1], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(np.inf), ax=ax[1], color='dodgerblue', label = 'original')
-ax[1].set_title(f'Fill NaN with Mean Value ({mean_deaths:.0f})', fontsize=14)
-ax[1].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-sns.lineplot(x=df['date'], y=df['deaths'].ffill(), ax=ax[2], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(np.inf), ax=ax[2], color='dodgerblue', label = 'original')
-ax[2].set_title(f'FFill', fontsize=14)
-ax[2].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-sns.lineplot(x=df['date'], y=df['deaths'].interpolate(), ax=ax[3], color='darkorange', label = 'modified')
-sns.lineplot(x=df['date'], y=df['deaths'].fillna(np.inf), ax=ax[3], color='dodgerblue', label = 'original')
-ax[3].set_title(f'Interpolate', fontsize=14)
-ax[3].set_ylabel(ylabel='Volume C10 Petrignano', fontsize=14)
-
-for i in range(4):
-    ax[i].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
-    
-plt.tight_layout()
-plt.show()
-
-df['deaths'] = df['deaths'].interpolate()
-df['cases'] = df['cases'].interpolate()
-
-fig, ax = plt.subplots(ncols=2, nrows=3, sharex=True, figsize=(16,12))
-
-sns.lineplot(df['date'], df['cases'], color='dodgerblue', ax=ax[0, 0])
-ax[0, 0].set_title('cases Volume', fontsize=14)
-
-resampled_df = df[['date','cases']].resample('7D', on='date').sum().reset_index(drop=False)
-sns.lineplot(resampled_df['date'], resampled_df['cases'], color='dodgerblue', ax=ax[1, 0])
-ax[1, 0].set_title('Weekly cases Volume', fontsize=14)
-
-resampled_df = df[['date','cases']].resample('M', on='date').sum().reset_index(drop=False)
-sns.lineplot(resampled_df['date'], resampled_df['cases'], color='dodgerblue', ax=ax[2, 0])
-ax[2, 0].set_title('Monthly cases Volume', fontsize=14)
-
-for i in range(3):
-    ax[i, 0].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
-
-sns.lineplot(df['date'], df['deaths'], color='dodgerblue', ax=ax[0, 1])
-ax[0, 1].set_title('Daily deaths (Acc.)', fontsize=14)
-
-resampled_df = df[['date','deaths']].resample('7D', on='date').mean().reset_index(drop=False)
-sns.lineplot(resampled_df['date'], resampled_df['deaths'], color='dodgerblue', ax=ax[1, 1])
-ax[1, 1].set_title('Weekly deaths (Acc.)', fontsize=14)
-
-resampled_df = df[['date','deaths']].resample('M', on='date').mean().reset_index(drop=False)
-sns.lineplot(resampled_df['date'], resampled_df['deaths'], color='dodgerblue', ax=ax[2, 1])
-ax[2, 1].set_title('Monthly deaths (Acc.)', fontsize=14)
-
-for i in range(3):
-    ax[i, 1].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
-plt.show()
-
-"""## Data Resampling"""
-
-# As we can see, downsample to weekly could smooth the data and hgelp with analysis
-downsample = df[['date', 'cases', 'cases_avg', 'deaths', 'deaths_avg']].resample('7D', on='date').mean().reset_index(drop=False)
-
+# To smooth the data, downsample data from daily to weekly
+downsample = df[['date','state', 'cases', 'cases_avg', 'deaths', 'deaths_avg']].resample('7D', on='date').mean().reset_index(drop=False)
 df = downsample.copy()
 
-"""## Stationarity"""
+"""## Stationarity
 
+###Visual Check
+"""
+
+# Visual check for stationarity
 rolling_window = 10
 f, ax = plt.subplots(nrows=2, ncols=1, figsize=(15, 12))
 
@@ -223,21 +112,14 @@ ax[1].set_xlim([date(2020, 4, 30), date(2020, 12, 30)])
 plt.tight_layout()
 plt.show()
 
-df['deaths'] = df['deaths'].replace(np.inf, 0)
-df['deaths'] = df['deaths'].replace(np.nan, 0)
-df['deaths'] = df['deaths'].replace(-np.inf, 0)
-
-df['cases'] = df['cases'].replace(np.inf, 0)
-df['cases'] = df['cases'].replace(np.nan, 0)
-
 """### ADF"""
 
-# https://www.statsmodels.org/stable/generated/statsmodels.tsa.stattools.adfuller.html
+# Output of ADF function for target column
 from statsmodels.tsa.stattools import adfuller
-
 result = adfuller(df['cases'].values)
 result
 
+# Visualize ADF results for all the columns in the dataset
 f, ax = plt.subplots(nrows=2, ncols=2, figsize=(15, 9))
 
 def visualize_adfuller_results(series, title, ax):
@@ -245,18 +127,20 @@ def visualize_adfuller_results(series, title, ax):
     significance_level = 0.05
     adf_stat = result[0]
     p_val = result[1]
+
     crit_val_1 = result[4]['1%']
     crit_val_5 = result[4]['5%']
     crit_val_10 = result[4]['10%']
 
+    # Check for stationarity using p value and ADF statistic
     if (p_val < significance_level) & ((adf_stat < crit_val_1)):
-        linecolor = 'forestgreen' 
+        linecolor = 'forestgreen' # Stationary
     elif (p_val < significance_level) & (adf_stat < crit_val_5):
-        linecolor = 'orange'
+        linecolor = 'orange' # Statinary
     elif (p_val < significance_level) & (adf_stat < crit_val_10):
-        linecolor = 'red'
+        linecolor = 'red' # Stationary
     else:
-        linecolor = 'purple'
+        linecolor = 'purple' # Non-stationary
     sns.lineplot(x=df['date'], y=series, ax=ax, color=linecolor)
     ax.set_title(f'ADF Statistic {adf_stat:0.3f}, p-value: {p_val:0.3f}\nCritical Values 1%: {crit_val_1:0.3f}, 5%: {crit_val_5:0.3f}, 10%: {crit_val_10:0.3f}', fontsize=14)
     ax.set_ylabel(ylabel=title, fontsize=14)
@@ -265,77 +149,41 @@ visualize_adfuller_results(df['deaths'].values, 'deaths', ax[0, 0])
 visualize_adfuller_results(df['cases'].values, 'cases', ax[1, 0])
 visualize_adfuller_results(df['deaths_avg'].values, 'deaths_avg', ax[0, 1])
 visualize_adfuller_results(df['cases_avg'].values, 'cases_avg', ax[1, 1])
-#f.delaxes(ax[1, 1])
 plt.tight_layout()
 plt.show()
 
-"""### Transforming"""
+"""As p-value>0.05 means non-stationary and 'Purple' lines indicates this in the graphs, most of our data is not stationary so use differencing to make it stationary.
 
-df['deaths'] = df['deaths'].replace(-np.inf, 0)
-
-f, ax = plt.subplots(nrows=1, ncols=2, figsize=(20, 6))
-visualize_adfuller_results(df['deaths'], 'Transformed \n deaths', ax[0])
-
-sns.distplot(df['deaths'], ax=ax[1])
-
-"""### Differencing"""
+### Differencing
+"""
 
 # First Order Differencing
-ts_diff = np.diff(df['deaths'])
-df['deaths'] = np.append([0], ts_diff)
+ts_diff = np.diff(df['cases'])
+df['cases_diff_1'] = np.append([0], ts_diff)
 
+# Plot column after differencing and
 f, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 6))
-visualize_adfuller_results(df['deaths'], 'Differenced (1. Order) \n deaths', ax)
+# Visualize ADF results
+visualize_adfuller_results(df['cases_diff_1'], 'Differenced (1. Order) \n deaths', ax)
 
-df['year'] = pd.DatetimeIndex(df['date']).year
-df['month'] = pd.DatetimeIndex(df['date']).month
-df['day'] = pd.DatetimeIndex(df['date']).day
-df['day_of_year'] = pd.DatetimeIndex(df['date']).dayofyear
-df['week_of_year'] = pd.DatetimeIndex(df['date']).weekofyear
-df['quarter'] = pd.DatetimeIndex(df['date']).quarter
-df['season'] = df['month'] % 12 // 3 + 1
+"""p-value = 0.046(< 0.05) indicates the data has become stationary and d value is '1' in ARIMA(p,d,q).
 
-df[['date', 'year', 'month', 'day', 'day_of_year', 'week_of_year', 'quarter', 'season']].head()
+# Feature engineering
 
-"""# Feature engineering"""
+###Time Series Decomposition
+"""
 
-df['year'] = pd.DatetimeIndex(df['date']).year
-df['month'] = pd.DatetimeIndex(df['date']).month
-df['day'] = pd.DatetimeIndex(df['date']).day
-df['day_of_year'] = pd.DatetimeIndex(df['date']).dayofyear
-df['week_of_year'] = pd.DatetimeIndex(df['date']).weekofyear
-df['quarter'] = pd.DatetimeIndex(df['date']).quarter
-df['season'] = df['month'] % 12 // 3 + 1
-
-df[['date', 'year', 'month', 'day', 'day_of_year', 'week_of_year', 'quarter', 'season']].head()
-
-f, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 3))
-
-sns.lineplot(x=df['date'], y=df['month'], color='dodgerblue')
-ax.set_xlim([date(2020, 1, 1), date(2020, 12, 30)])
-plt.show()
-
-month_in_year = 12
-df['month_sin'] = np.sin(2*np.pi*df['month']/month_in_year)
-df['month_cos'] = np.cos(2*np.pi*df['month']/month_in_year)
-
-f, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
-
-sns.scatterplot(x=df.month_sin, y=df.month_cos, color='dodgerblue')
-plt.show()
-
+# Check for trends and seasonality for more analysis of the time series used
 from statsmodels.tsa.seasonal import seasonal_decompose
 
-core_columns =  [
-    'deaths', 'cases', 'deaths_avg', 
-    'cases_avg'
-]
+core_columns =  [ 'cases','deaths','deaths_avg','cases_avg']
 
 for column in core_columns:
     decomp = seasonal_decompose(df[column], period=25, model='additive', extrapolate_trend='freq')
     df[f"{column}_trend"] = decomp.trend
     df[f"{column}_seasonal"] = decomp.seasonal
 
+# Visualize trends and seasonality in our data
 fig, ax = plt.subplots(ncols=2, nrows=4, sharex=True, figsize=(16,8))
 
 for i, column in enumerate(['deaths', 'cases']):
@@ -357,6 +205,9 @@ for i, column in enumerate(['deaths', 'cases']):
 
 plt.show()
 
+"""### Lag Calculation"""
+
+# Shift each feature for correlating of lag terms with original
 weeks_in_month = 4
 
 for column in core_columns:
@@ -366,6 +217,9 @@ for column in core_columns:
     df[f'{column}_seasonal_shift_2m'] = df[f'{column}_seasonal'].shift(2 * weeks_in_month)
     df[f'{column}_seasonal_shift_3m'] = df[f'{column}_seasonal'].shift(3 * weeks_in_month)
 
+"""##Exploratory Data Analysis"""
+
+# Visualize seasionality of the features
 f, ax = plt.subplots(nrows=4, ncols=1, figsize=(15, 12))
 f.suptitle('Seasonal Components of Features', fontsize=16)
 
@@ -377,6 +231,7 @@ for i, column in enumerate(core_columns):
 plt.tight_layout()
 plt.show()
 
+# Visualize and compare correlation betwwen original and lagged features
 f, ax = plt.subplots(nrows=1, ncols=2, figsize=(16, 8))
 
 corrmat = df[core_columns].corr()
@@ -385,10 +240,10 @@ sns.heatmap(corrmat, annot=True, vmin=-1, vmax=1, cmap='coolwarm_r', ax=ax[0])
 ax[0].set_title('Correlation Matrix of Core Features', fontsize=16)
 
 shifted_cols = [
-    'deaths_seasonal',         
-    'cases_seasonal_shift_b_2m',
+    'cases_seasonal',         
+    'deaths_seasonal_shift_2m',
     'deaths_avg_seasonal_shift_2m', 
-    'cases_avg_seasonal_shift_3m'
+    'cases_avg_seasonal_shift_2m'
 ]
 corrmat = df[shifted_cols].corr()
 
@@ -399,35 +254,43 @@ ax[1].set_title('Correlation Matrix of Lagged Features', fontsize=16)
 plt.tight_layout()
 plt.show()
 
-from pandas.plotting import autocorrelation_plot
+"""Auto-correlation of the features in the shifted(lagged) ones is less than the original ones.
 
-autocorrelation_plot(df['deaths'])
+## Autocorrelation Analysis
+"""
+
+# plot autocorrealtion funtion of differenced column
+from pandas.plotting import autocorrelation_plot
+autocorrelation_plot(df['cases_diff_1'])
 plt.show()
 
+# plot Autocorrelation and Partial autocorrelation of the differenced data column
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
 
 f, ax = plt.subplots(nrows=2, ncols=1, figsize=(16, 8))
 
-plot_acf(df['deaths'], lags=24, ax=ax[0])
-plot_pacf(df['cases'], lags=24, ax=ax[1])
+plot_acf(df['cases_diff_1'], lags=48, ax=ax[0])
+plot_pacf(df['cases_diff_1'], lags=24, ax=ax[1])
 
 plt.show()
 
-"""# ARIMA"""
+"""#Modelling
 
-test_df = pd.read_csv("https://raw.githubusercontent.com/Kande2011/TimeSeriesAnalysisOfCOVID19/data_preprocessing/DataSets/us-counties-2021.csv")
-test_df.head()
+##Train-Test Split
+"""
 
+# split data into training and testing dataset for visualization
 from sklearn.model_selection import TimeSeriesSplit
 
 N_SPLITS = 3
 
 X = df['date']
-y = df['deaths']
+y = df['cases']
 
 folds = TimeSeriesSplit(n_splits=N_SPLITS)
 
+# Visualize difference between rolling and constant Training size
 f, ax = plt.subplots(nrows=N_SPLITS, ncols=2, figsize=(16, 9))
 
 for i, (train_index, valid_index) in enumerate(folds.split(X)):
@@ -461,6 +324,7 @@ for i in range(N_SPLITS):
 plt.tight_layout()
 plt.show()
 
+# Split data into training and testing samples for our models
 train_size = 25
 test_size = len(df) - train_size
 
@@ -470,46 +334,47 @@ univariate_df.columns = ['ds', 'y']
 train = univariate_df.iloc[:train_size, :]
 
 x_train, y_train = pd.DataFrame(univariate_df.iloc[:train_size, 0]), pd.DataFrame(univariate_df.iloc[:train_size, 1])
-x_valid, y_valid = pd.DataFrame(univariate_df.iloc[train_size:, 0]), pd.DataFrame(univariate_df.iloc[train_size:, 1])
+x_test, y_test = pd.DataFrame(univariate_df.iloc[train_size:, 0]), pd.DataFrame(univariate_df.iloc[train_size:, 1])
 
-print(len(train), len(x_valid))
+"""## ARIMA"""
 
 from statsmodels.tsa.arima_model import ARIMA
 
-# Fit model
+# Train and Fit model
 model = ARIMA(y_train, order=(1,1,1))
 model_fit = model.fit()
 
 # Prediction with ARIMA
 y_pred, se, conf = model_fit.forecast(25)
 
-model_fit.save('Forescast.h5')
 # Calcuate metrics
-score_mae = mean_absolute_error(y_valid, y_pred)
-score_rmse = math.sqrt(mean_squared_error(y_valid, y_pred))
+score_mae = mean_absolute_error(y_test, y_pred)
+score_rmse = math.sqrt(mean_squared_error(y_test, y_pred))
 
 print(Fore.GREEN + 'RMSE: {}'.format(score_rmse))
 
+# Visualize original data against predicted data
 f, ax = plt.subplots(1)
 f.set_figheight(6)
 f.set_figwidth(15)
 
 model_fit.plot_predict(1, 50, ax=ax)
-sns.lineplot(x=x_valid.index, y=y_valid['y'], ax=ax, color='orange', label='Ground truth') #navajowhite
+sns.lineplot(x=x_test.index, y=y_test['y'], ax=ax, color='orange', label='Ground truth')
 
 ax.set_title(f'Prediction \n MAE: {score_mae:.2f}, RMSE: {score_rmse:.2f}', fontsize=14)
 ax.set_xlabel(xlabel='Date', fontsize=14)
 ax.set_ylabel(ylabel='Cases', fontsize=14)
 
-ax.set_ylim(-2, 5)
+ax.set_ylim(-2, 100)
 plt.show()
 
+# Plot test and predicted data set
 f, ax = plt.subplots(1)
 f.set_figheight(4)
 f.set_figwidth(15)
 
-sns.lineplot(x=x_valid.index, y=y_pred, ax=ax, color='blue', label='predicted') #navajowhite
-sns.lineplot(x=x_valid.index, y=y_valid['y'], ax=ax, color='orange', label='Ground truth') #navajowhite
+sns.lineplot(x=x_test.index, y=y_pred, ax=ax, color='blue', label='predicted')
+sns.lineplot(x=x_test.index, y=y_test['y'], ax=ax, color='orange', label='Ground truth')
 
 ax.set_xlabel(xlabel='Date', fontsize=14)
 ax.set_ylabel(ylabel='Cases', fontsize=14)
@@ -521,16 +386,18 @@ plt.show()
 from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
 
+# transform input features to scaler
 scaler.fit(x_train)
 scaled_train_data = scaler.transform(x_train)
 scaled_test_data = scaler.transform(y_train)
 
+# generate time series
 from keras.preprocessing.sequence import TimeseriesGenerator
-
 n_input = 12
 n_features= 1
-generator = TimeseriesGenerator(scaled_train_data, scaled_train_data, length=n_input, batch_size=1)
+generator = TimeseriesGenerator(scaled_train_data, scaled_test_data, length=n_input, batch_size=1)
 
+# load the model
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
@@ -538,11 +405,13 @@ from keras.layers import LSTM
 lstm_model = Sequential()
 lstm_model.add(LSTM(50, activation='relu', input_shape=(n_input, n_features)))
 lstm_model.add(Dense(1))
-lstm_model.compile(optimizer='adam', loss='mse')
+lstm_model.compile(optimizer='adam', loss='mse',metrics = ['accuracy'])
 
 lstm_model.summary()
 
+# fit the model
 lstm_model.fit_generator(generator,epochs=20)
+lstm_model.save('Forecast.h5')
 
 losses_lstm = lstm_model.history.history['loss']
 plt.figure(figsize=(12,4))
