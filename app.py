@@ -68,9 +68,9 @@ def my_pipeline(start_date):
 
 @app.post('/predict')
 def predict(fromDate:int = Form(...)):
-    #clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the text through pipeline
+    #clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the input through pipeline
     loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
-    predictions = loaded_model.forecast(fromDate) #predict the text
+    predictions, se, conf = loaded_model.forecast(fromDate) #predict
     #probability = max(predictions.tolist()[0]) #calulate the probability
     return { #return predicted covid cases
          "PREDICTED Covid cases for next ": fromDate,
