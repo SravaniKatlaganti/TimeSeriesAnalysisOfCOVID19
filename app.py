@@ -62,7 +62,7 @@ def my_pipeline(start_date):
     # X = pad_sequences(X, maxlen=28)
     return startDate_new
 
-@app.post('/predict')
+@app.post('/predict',response_class=HTMLResponse)
 def predict():
     #clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the input through pipeline
     #loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
