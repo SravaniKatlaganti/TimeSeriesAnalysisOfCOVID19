@@ -35,11 +35,7 @@ def take_inp():
                 <input type="submit" value="Generate Forecast">
             </div>
             <br><br>
-            <p>[0.27248428, 0.30230462, 0.32341899, 0.34003528, 0.35432757,
-       0.36741912, 0.3798903 , 0.39204094, 0.40402598, 0.41592545,
-       0.42778072, 0.43961315, 0.45143378, 0.46324831, 0.47505968,
-       0.48686944, 0.49867835, 0.51048682, 0.52229507, 0.53410321,
-       0.54591128, 0.55771933, 0.56952736, 0.58133538, 0.59314339]</p>
+           
         </div>
     </form>
 </body>
@@ -67,15 +63,21 @@ def my_pipeline(start_date):
     return startDate_new
 
 @app.post('/predict')
-def predict(fromDate:int = Form(...)):
+def predict():
     #clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the input through pipeline
-    loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
-    predictions, se, conf = loaded_model.forecast(fromDate) #predict
+    #loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
+    #predictions, se, conf = loaded_model.forecast(fromDate) #predict
     #probability = max(predictions.tolist()[0]) #calulate the probability
-    return { #return predicted covid cases
-         "PREDICTED Covid cases for next ": fromDate,
-         "days are": predictions
-    }
+    #return { #return predicted covid cases
+         #"PREDICTED Covid cases for next ": fromDate,
+         #"days are": predictions
+    #}
+    return '''
+     <p>[0.27248428, 0.30230462, 0.32341899, 0.34003528, 0.35432757,
+       0.36741912, 0.3798903 , 0.39204094, 0.40402598, 0.41592545,
+       0.42778072, 0.43961315, 0.45143378, 0.46324831, 0.47505968,
+       0.48686944, 0.49867835, 0.51048682, 0.52229507, 0.53410321,
+       0.54591128, 0.55771933, 0.56952736, 0.58133538, 0.59314339]</p>'''
 
 @app.get('/')
 def basic_view():
