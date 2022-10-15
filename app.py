@@ -12,6 +12,7 @@ app = FastAPI()
 
 @app.get('/predict', response_class=HTMLResponse) #data input by forms
 def take_inp():
+   
 
     return '''
     <!doctype html>
@@ -68,11 +69,10 @@ def predict(fromDate:int = Form(...)):
     #clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the text through pipeline
     loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
     predictions = loaded_model.forecast(fromDate) #predict the text
-    probability = max(predictions.tolist()[0]) #calulate the probability
+    #probability = max(predictions.tolist()[0]) #calulate the probability
     return { #return predicted covid cases
-         "PREDICTED Covid cases on ": fromDate,
-         "are": predictions,
-         "with probability": probability
+         "PREDICTED Covid cases for next ": fromDate,
+         "days are": predictions
     }
 
 @app.get('/')
