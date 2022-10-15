@@ -31,7 +31,7 @@ def take_inp():
             <b>Select Forecast period</b>
             </br></br>
             <label style="padding-right: 25px;">From Date: &nbsp;</label>
-            <input type="date" name="fromDate">
+            <input type="number" name="fromDate">
             </br></br>
             </br>
             <div style="padding-left: 50px;">
@@ -50,6 +50,7 @@ def image():
 data = pd.read_csv('us-counties-2020.csv')
 # tokenizer = Tokenizer(num_words=2000, split=' ')
 # tokenizer.fit_on_texts(data['text'].values)
+pd.to_datetime(data['date'], format = '%Y-%m-%d')
 
 def preProcess_data(date):
     new_date = pd.to_datetime(date, format = '%Y-%m-%d')
@@ -63,13 +64,13 @@ def my_pipeline(start_date):
     return startDate_new
 
 @app.post('/predict')
-def predict(fromDate:date = Form(...)):
-    clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the text through pipeline
+def predict(fromDate:int = Form(...)):
+    #clean_fDate,clean_eDate = my_pipeline(fromDate) #clean, and preprocess the text through pipeline
     loaded_model = tf.keras.models.load_model('Forecast.h5') #load the saved model 
-    predictions = loaded_model.predict(clean_fDate) #predict the text
+    predictions = loaded_model.forecast(fromDate) #predict the text
     probability = max(predictions.tolist()[0]) #calulate the probability
     return { #return predicted covid cases
-         "PREDICTED Covid cases on ": clean_fDate,
+         "PREDICTED Covid cases on ": fromDate,
          "are": predictions,
          "with probability": probability
     }
