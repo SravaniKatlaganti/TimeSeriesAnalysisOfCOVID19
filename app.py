@@ -12,38 +12,11 @@ app = FastAPI()
 
 @app.get('/predict', response_class=HTMLResponse) #data input by forms
 def take_inp():
-   
+   return '''<form method="post"> 
+    <input type="number" name="fromDate"/>  
+    <input type="submit"/> 
+    </form>'''   
 
-    return '''
-    <!doctype html>
-<html>
-
-<head>
-    <title>Home</title>
-</head>
-
-<body>
-    <div style="text-align:center;">
-        <h2>Time Series Analysis of COVID 19</h2>
-        <h4>**We help you to forecast COVID new cases**</h4>
-    </div>
-    <form method="post">
-        <div style="width:30%;float: left;">
-            <b>Select Forecast period</b>
-            </br></br>
-            <label style="padding-right: 25px;">From Date: &nbsp;</label>
-            <input type="number" name="fromDate">
-            </br></br>
-            </br>
-            <div style="padding-left: 50px;">
-                <input type="submit" value="Generate Forecast">
-            </div>
-        </div>
-    </form>
-</body>
-
-</html>
-    '''
 @app.get("/graph")
 def image():
     return responses.FileResponse("graph.jpg")
